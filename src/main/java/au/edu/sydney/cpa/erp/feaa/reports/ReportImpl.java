@@ -2,70 +2,101 @@ package au.edu.sydney.cpa.erp.feaa.reports;
 
 import au.edu.sydney.cpa.erp.ordering.Report;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class ReportImpl implements Report {
 
-    private String name;
-    private double commissionPerEmployee;
-    private double[] legalData;
-    private double[] cashFlowData;
-    private double[] mergesData;
-    private double[] tallyingData;
-    private double[] deductionsData;
+  private String name;
+  private double commissionPerEmployee;
+  private double[] legalData;
+  private double[] cashFlowData;
+  private double[] mergesData;
+  private double[] tallyingData;
+  private double[] deductionsData;
 
-    public ReportImpl(String name,
-                      double commissionPerEmployee,
-                      double[] legalData,
-                      double[] cashFlowData,
-                      double[] mergesData,
-                      double[] tallyingData,
-                      double[] deductionsData) {
-        this.name = name;
-        this.commissionPerEmployee = commissionPerEmployee;
-        this.legalData = legalData;
-        this.cashFlowData = cashFlowData;
-        this.mergesData = mergesData;
-        this.tallyingData = tallyingData;
-        this.deductionsData = deductionsData;
-    }
+  public ReportImpl(
+      String name,
+      double commissionPerEmployee,
+      double[] legalData,
+      double[] cashFlowData,
+      double[] mergesData,
+      double[] tallyingData,
+      double[] deductionsData) {
+    this.name = name;
+    this.commissionPerEmployee = commissionPerEmployee;
+    this.legalData = legalData;
+    this.cashFlowData = cashFlowData;
+    this.mergesData = mergesData;
+    this.tallyingData = tallyingData;
+    this.deductionsData = deductionsData;
+  }
 
-    @Override
-    public String getReportName() {
-        return name;
-    }
+  @Override
+  public String getReportName() {
+    return name;
+  }
 
-    @Override
-    public double getCommission() {
-        return commissionPerEmployee;
-    }
+  @Override
+  public double getCommission() {
+    return commissionPerEmployee;
+  }
 
-    @Override
-    public double[] getLegalData() {
-        return legalData;
-    }
+  @Override
+  public double[] getLegalData() {
+    return legalData;
+  }
 
-    @Override
-    public double[] getCashFlowData() {
-        return cashFlowData;
-    }
+  @Override
+  public double[] getCashFlowData() {
+    return cashFlowData;
+  }
 
-    @Override
-    public double[] getMergesData() {
-        return mergesData;
-    }
+  @Override
+  public double[] getMergesData() {
+    return mergesData;
+  }
 
-    @Override
-    public double[] getTallyingData() {
-        return tallyingData;
-    }
+  @Override
+  public double[] getTallyingData() {
+    return tallyingData;
+  }
 
-    @Override
-    public double[] getDeductionsData() {
-        return deductionsData;
-    }
+  @Override
+  public double[] getDeductionsData() {
+    return deductionsData;
+  }
 
-    @Override
-    public String toString() {
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof Report)) return false;
 
-        return String.format("%s", name);
-    }
+    Report o = (ReportImpl) obj;
+    return name.equals(o.getReportName())
+        && Double.compare(commissionPerEmployee, o.getCommission()) == 0
+        && Arrays.equals(legalData, o.getLegalData())
+        && Arrays.equals(cashFlowData, o.getCashFlowData())
+        && Arrays.equals(mergesData, o.getMergesData())
+        && Arrays.equals(tallyingData, o.getTallyingData())
+        && Arrays.equals(deductionsData, o.getDeductionsData());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+        name,
+        commissionPerEmployee,
+        legalData,
+        cashFlowData,
+        mergesData,
+        tallyingData,
+        deductionsData);
+  }
+
+  @Override
+  public String toString() {
+
+    return String.format("%s", name);
+  }
 }

@@ -1,4 +1,4 @@
-package au.edu.sydney.cpa.erp.feaa;
+package au.edu.sydney.cpa.erp.feaa.contacts;
 
 public enum ContactMethod {
     CARRIER_PIGEON,

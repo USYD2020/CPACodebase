@@ -3,6 +3,8 @@ package au.edu.sydney.cpa.erp.feaa;
 import au.edu.sydney.cpa.erp.auth.AuthModule;
 import au.edu.sydney.cpa.erp.auth.AuthToken;
 import au.edu.sydney.cpa.erp.database.TestDatabase;
+import au.edu.sydney.cpa.erp.feaa.contacts.ContactHandler;
+import au.edu.sydney.cpa.erp.feaa.contacts.ContactMethod;
 import au.edu.sydney.cpa.erp.ordering.Client;
 import au.edu.sydney.cpa.erp.ordering.Order;
 import au.edu.sydney.cpa.erp.ordering.Report;
