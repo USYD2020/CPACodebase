@@ -20,6 +20,7 @@ public class EmailHandler implements ReportChainLink {
                 Email.sendInvoice(token, client.getFName(), client.getLName(), data, email);
                 return true;
             }
+            return false;
         }
 
         if (null == next) {

@@ -549,7 +549,17 @@ public class AllowedScopeTest {
 
         verifyStatic(ReportDatabase.class);
         ReportDatabase.getTestReports();
+
     }
+
+  @Test
+  public void TestRAM () {
+      setupLogin();
+      facade.getAllReports();
+      // ============================== test time ==============================
+      System.out.println("Total used RAM: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/1024/1024);
+      // ============================== test time ==============================
+  }
 
     @Test
     public void finaliseOrder() {

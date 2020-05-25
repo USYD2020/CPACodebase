@@ -5,6 +5,7 @@ import au.edu.sydney.cpa.erp.ordering.Report;
 import java.util.Arrays;
 import java.util.Objects;
 
+/** The type Report. */
 public class ReportImpl implements Report {
 
   private String name;
@@ -14,7 +15,19 @@ public class ReportImpl implements Report {
   private double[] mergesData;
   private double[] tallyingData;
   private double[] deductionsData;
+  private static final FlyweightFactory flyweightFactory = new FlyweightFactory();
 
+  /**
+   * Instantiates a new Report.
+   *
+   * @param name the name
+   * @param commissionPerEmployee the commission per employee
+   * @param legalData the legal data
+   * @param cashFlowData the cash flow data
+   * @param mergesData the merges data
+   * @param tallyingData the tallying data
+   * @param deductionsData the deductions data
+   */
   public ReportImpl(
       String name,
       double commissionPerEmployee,
@@ -23,13 +36,44 @@ public class ReportImpl implements Report {
       double[] mergesData,
       double[] tallyingData,
       double[] deductionsData) {
-    this.name = name;
-    this.commissionPerEmployee = commissionPerEmployee;
-    this.legalData = legalData;
-    this.cashFlowData = cashFlowData;
-    this.mergesData = mergesData;
-    this.tallyingData = tallyingData;
-    this.deductionsData = deductionsData;
+    Report reportFound =
+        flyweightFactory.getReport(
+            name,
+            commissionPerEmployee,
+            legalData,
+            cashFlowData,
+            mergesData,
+            tallyingData,
+            deductionsData);
+    if (reportFound != null) {
+      reduceRamUseByUsingSameAddressForExistingDuplicateReportImpl(reportFound);
+      return;
+    }
+      this.name = name;
+      this.commissionPerEmployee = commissionPerEmployee;
+      this.legalData = legalData;
+      this.cashFlowData = cashFlowData;
+      this.mergesData = mergesData;
+      this.tallyingData = tallyingData;
+      this.deductionsData = deductionsData;
+      flyweightFactory.addReport(this);
+  }
+
+  /**
+   * Reduce ram use by using same address of the attributes for existing duplicate report.
+   *
+   * @param flyweight the flyweight report
+   */
+  public void reduceRamUseByUsingSameAddressForExistingDuplicateReportImpl(Report flyweight) {
+    if (flyweight != null) {
+      this.name = flyweight.getReportName();
+      this.commissionPerEmployee = flyweight.getCommission();
+      this.legalData = flyweight.getLegalData();
+      this.cashFlowData = flyweight.getCashFlowData();
+      this.mergesData = flyweight.getMergesData();
+      this.tallyingData = flyweight.getTallyingData();
+      this.deductionsData = flyweight.getDeductionsData();
+    }
   }
 
   @Override

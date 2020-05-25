@@ -21,6 +21,7 @@ public class InternalAccountingHandler implements ReportChainLink {
                 InternalAccounting.sendInvoice(token, client.getFName(), client.getLName(), data, internalAccounting,businessName);
                 return true;
             }
+            return false;
         }
 
         if (null == next) {

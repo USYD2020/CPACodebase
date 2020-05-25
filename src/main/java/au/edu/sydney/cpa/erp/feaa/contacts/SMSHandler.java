@@ -20,6 +20,7 @@ public class SMSHandler implements ReportChainLink {
         SMS.sendInvoice(token, client.getFName(), client.getLName(), data, smsPhone);
         return true;
       }
+      return false;
     }
 
     if (null == next) {

@@ -24,6 +24,7 @@ public class MailHandler implements ReportChainLink{
                 Mail.sendInvoice(token, client.getFName(), client.getLName(), data, address, suburb, state, postcode);
                 return true;
             }
+            return false;
         }
 
         if (null == next) {

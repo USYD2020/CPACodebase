@@ -21,6 +21,7 @@ public class CarrierPigeonHandler implements ReportChainLink {
                 CarrierPigeon.sendInvoice(token, client.getFName(), client.getLName(), data, pigeonCoopID);
                 return true;
             }
+            return false;
         }
 
         if (null == next) {

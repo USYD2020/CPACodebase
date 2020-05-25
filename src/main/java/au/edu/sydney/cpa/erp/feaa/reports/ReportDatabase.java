@@ -66,7 +66,6 @@ public class ReportDatabase {
                     original.getTallyingData().clone(),
                     original.getDeductionsData().clone()));
         }
-
         return result;
     }
 
@@ -80,7 +79,7 @@ public class ReportDatabase {
          */
 
         // =================================== IMPORTANT to be 500000 ==================================
-        double[] result = new double[500];
+        double[] result = new double[500000];
         // =================================== IMPORTANT to be 500000 ==================================
         Random random = new Random();
 

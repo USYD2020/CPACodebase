@@ -20,6 +20,7 @@ public class PhoneCallHandler implements ReportChainLink {
                 PhoneCall.sendInvoice(token, client.getFName(), client.getLName(), data, phone);
                 return true;
             }
+            return false;
         }
 
         if (null == next) {

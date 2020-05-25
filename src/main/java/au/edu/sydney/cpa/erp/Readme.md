@@ -18,10 +18,10 @@
 *     Design indexing (primary key) to compare，HashMap, Value Object??
 
 * Issue: Slow database operations in Order creation
-*     Simplify the process, use Prototype??
+*     Simplify the process, use Prototype, UOW??
 
 * Issue: Single threading is not useful.
-*     or database processes and other functions. Thread Pool.
+*     database processes and other functions. Thread Pool.
 
 ## Speical Notes for scope
 1. Changes are in-scope as they are only made in feaa package excluding ReportDatabase class.

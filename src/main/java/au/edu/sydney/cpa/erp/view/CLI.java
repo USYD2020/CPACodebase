@@ -23,6 +23,7 @@ public class CLI {
     long endTime = System.nanoTime();
     long totalTime = endTime - startTime;
     System.out.println("Total used time: " + totalTime / 1000000000.0 + " seconds");
+    System.out.println("Total used RAM: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/1024/1024);
      // ============================== test time ==============================
   }
 

@@ -58,36 +58,39 @@ public class FEAAFacade {
         }
 
         int id = TestDatabase.getInstance().getNextOrderID();
+        if(!isScheduled) numQuarters = 1;
+        if(!isCritical) criticalLoading = 0;
+        order = new OrderImpl(id, clientID, date, criticalLoading, maxCountedEmployees, numQuarters);
 
-        if (isScheduled) {
-            if (1 == orderType) { // 1 is regular accounting
-                if (isCritical) {
-                    order = new FirstOrderTypeScheduled(id, clientID, date, criticalLoading, maxCountedEmployees, numQuarters);
-                } else {
-                    order = new Order66Scheduled(id, clientID, date, maxCountedEmployees, numQuarters);
-                }
-            } else if (2 == orderType) { // 2 is audit
-                    if (isCritical) {
-                        order = new CriticalAuditOrderScheduled(id, clientID, date, criticalLoading, numQuarters);
-                    } else {
-                        order = new NewOrderImplScheduled(id, clientID, date, numQuarters);
-                    }
-            } else {return null;}
-        } else {
-            if (1 == orderType) {
-                if (isCritical) {
-                    order = new FirstOrderType(id, clientID, date, criticalLoading, maxCountedEmployees);
-                } else {
-                    order = new Order66(id, clientID, date, maxCountedEmployees);
-                }
-            } else if (2 == orderType) {
-                if (isCritical) {
-                    order = new CriticalAuditOrder(id, clientID, date, criticalLoading);
-                } else {
-                    order = new NewOrderImpl(id, clientID, date);
-                }
-            } else {return null;}
-        }
+//        if (isScheduled) {
+//            if (1 == orderType) { // 1 is regular accounting
+//                if (isCritical) {
+//                    order = new FirstOrderTypeScheduled(id, clientID, date, criticalLoading, maxCountedEmployees, numQuarters);
+//                } else {
+//                    order = new Order66Scheduled(id, clientID, date, maxCountedEmployees, numQuarters);
+//                }
+//            } else if (2 == orderType) { // 2 is audit
+//                    if (isCritical) {
+//                        order = new CriticalAuditOrderScheduled(id, clientID, date, criticalLoading, numQuarters);
+//                    } else {
+//                        order = new NewOrderImplScheduled(id, clientID, date, numQuarters);
+//                    }
+//            } else {return null;}
+//        } else {
+//            if (1 == orderType) {
+//                if (isCritical) {
+//                    order = new FirstOrderType(id, clientID, date, criticalLoading, maxCountedEmployees);
+//                } else {
+//                    order = new Order66(id, clientID, date, maxCountedEmployees);
+//                }
+//            } else if (2 == orderType) {
+//                if (isCritical) {
+//                    order = new CriticalAuditOrder(id, clientID, date, criticalLoading);
+//                } else {
+//                    order = new NewOrderImpl(id, clientID, date);
+//                }
+//            } else {return null;}
+//        }
 
         TestDatabase.getInstance().saveOrder(token, order);
         return order.getOrderID();
