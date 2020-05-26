@@ -79,7 +79,7 @@ public class ReportDatabase {
          */
 
         // =================================== IMPORTANT to be 500000 ==================================
-        double[] result = new double[500000];
+        double[] result = new double[5000];
         // =================================== IMPORTANT to be 500000 ==================================
         Random random = new Random();
 

@@ -18,236 +18,259 @@ import java.util.List;
 
 @SuppressWarnings("Duplicates")
 public class FEAAFacade {
-    private AuthToken token;
+  private AuthToken token;
 
-    public boolean login(String userName, String password) {
-        token = AuthModule.login(userName, password);
+  public boolean login(String userName, String password) {
+    token = AuthModule.login(userName, password);
 
-        return null != token;
+    return null != token;
+  }
+
+  public List<Integer> getAllOrders() {
+    if (null == token) {
+      throw new SecurityException();
     }
 
-    public List<Integer> getAllOrders() {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    TestDatabase database = TestDatabase.getInstance();
 
-        TestDatabase database = TestDatabase.getInstance();
+    List<Order> orders = database.getOrders(token);
 
-        List<Order> orders = database.getOrders(token);
+    List<Integer> result = new ArrayList<>();
 
-        List<Integer> result = new ArrayList<>();
-
-        for (Order order : orders) {
-            result.add(order.getOrderID());
-        }
-
-        return result;
+    for (Order order : orders) {
+      result.add(order.getOrderID());
     }
 
-    public Integer createOrder(int clientID, LocalDateTime date, boolean isCritical, boolean isScheduled, int orderType, int criticalLoadingRaw, int maxCountedEmployees, int numQuarters) {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    return result;
+  }
 
-        double criticalLoading = criticalLoadingRaw / 100.0;
-
-        Order order;
-
-        if (!TestDatabase.getInstance().getClientIDs(token).contains(clientID)) {
-            throw new IllegalArgumentException("Invalid client ID");
-        }
-
-        int id = TestDatabase.getInstance().getNextOrderID();
-        if(!isScheduled) numQuarters = 1;
-        if(!isCritical) criticalLoading = 0;
-        order = new OrderImpl(id, clientID, date, criticalLoading, maxCountedEmployees, numQuarters);
-
-//        if (isScheduled) {
-//            if (1 == orderType) { // 1 is regular accounting
-//                if (isCritical) {
-//                    order = new FirstOrderTypeScheduled(id, clientID, date, criticalLoading, maxCountedEmployees, numQuarters);
-//                } else {
-//                    order = new Order66Scheduled(id, clientID, date, maxCountedEmployees, numQuarters);
-//                }
-//            } else if (2 == orderType) { // 2 is audit
-//                    if (isCritical) {
-//                        order = new CriticalAuditOrderScheduled(id, clientID, date, criticalLoading, numQuarters);
-//                    } else {
-//                        order = new NewOrderImplScheduled(id, clientID, date, numQuarters);
-//                    }
-//            } else {return null;}
-//        } else {
-//            if (1 == orderType) {
-//                if (isCritical) {
-//                    order = new FirstOrderType(id, clientID, date, criticalLoading, maxCountedEmployees);
-//                } else {
-//                    order = new Order66(id, clientID, date, maxCountedEmployees);
-//                }
-//            } else if (2 == orderType) {
-//                if (isCritical) {
-//                    order = new CriticalAuditOrder(id, clientID, date, criticalLoading);
-//                } else {
-//                    order = new NewOrderImpl(id, clientID, date);
-//                }
-//            } else {return null;}
-//        }
-
-        TestDatabase.getInstance().saveOrder(token, order);
-        return order.getOrderID();
+  public Integer createOrder(
+      int clientID,
+      LocalDateTime date,
+      boolean isCritical,
+      boolean isScheduled,
+      int orderType,
+      int criticalLoadingRaw,
+      int maxCountedEmployees,
+      int numQuarters) {
+    if (null == token) {
+      throw new SecurityException();
     }
 
-    public List<Integer> getAllClientIDs() {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    double criticalLoading = criticalLoadingRaw / 100.0;
 
-        TestDatabase database = TestDatabase.getInstance();
-        return database.getClientIDs(token);
+    if (!TestDatabase.getInstance().getClientIDs(token).contains(clientID)) {
+      throw new IllegalArgumentException("Invalid client ID");
     }
 
-    public Client getClient(int id) {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    int id = TestDatabase.getInstance().getNextOrderID();
+    if (!isScheduled) numQuarters = 1;
 
-        return new ClientImpl(token, id);
+    Priority priority;
+    if (isCritical) priority = new IsPriority(criticalLoading);
+    else priority = new IsNotPriority();
+
+    TypeOfOrder type = null;
+    if(orderType == 1) type = new TypeAccounting(maxCountedEmployees);
+    else if( orderType == 2) type  = new TypeAudit();
+
+    if (type == null) return null;
+    Order order =
+          new OrderImpl(
+              id, clientID, date, priority, numQuarters, type);
+
+
+    //        if (isScheduled) {
+    //            if (1 == orderType) { // 1 is regular accounting
+    //                if (isCritical) {
+    //                    order = new FirstOrderTypeScheduled(id, clientID, date, criticalLoading,
+    // maxCountedEmployees, numQuarters);
+    //                } else {
+    //                    order = new Order66Scheduled(id, clientID, date, maxCountedEmployees,
+    // numQuarters);
+    //                }
+    //            } else if (2 == orderType) { // 2 is audit
+    //                    if (isCritical) {
+    //                        order = new CriticalAuditOrderScheduled(id, clientID, date,
+    // criticalLoading, numQuarters);
+    //                    } else {
+    //                        order = new NewOrderImplScheduled(id, clientID, date, numQuarters);
+    //                    }
+    //            } else {return null;}
+    //        } else {
+    //            if (1 == orderType) {
+    //                if (isCritical) {
+    //                    order = new FirstOrderType(id, clientID, date, criticalLoading,
+    // maxCountedEmployees);
+    //                } else {
+    //                    order = new Order66(id, clientID, date, maxCountedEmployees);
+    //                }
+    //            } else if (2 == orderType) {
+    //                if (isCritical) {
+    //                    order = new CriticalAuditOrder(id, clientID, date, criticalLoading);
+    //                } else {
+    //                    order = new NewOrderImpl(id, clientID, date);
+    //                }
+    //            } else {return null;}
+    //        }
+
+    TestDatabase.getInstance().saveOrder(token, order);
+    return order.getOrderID();
+  }
+
+  public List<Integer> getAllClientIDs() {
+    if (null == token) {
+      throw new SecurityException();
     }
 
-    public boolean removeOrder(int id) {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    TestDatabase database = TestDatabase.getInstance();
+    return database.getClientIDs(token);
+  }
 
-        TestDatabase database = TestDatabase.getInstance();
-        return database.removeOrder(token, id);
+  public Client getClient(int id) {
+    if (null == token) {
+      throw new SecurityException();
     }
 
-    public List<Report> getAllReports() {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    return new ClientImpl(token, id);
+  }
 
-        return new ArrayList<>(ReportDatabase.getTestReports());
+  public boolean removeOrder(int id) {
+    if (null == token) {
+      throw new SecurityException();
     }
 
-    public boolean finaliseOrder(int orderID, List<String> contactPriority) {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    TestDatabase database = TestDatabase.getInstance();
+    return database.removeOrder(token, id);
+  }
 
-        List<ContactMethod> contactPriorityAsMethods = new ArrayList<>();
-
-        if (null != contactPriority) {
-            for (String method: contactPriority) {
-                switch (method.toLowerCase()) {
-                    case "internal accounting":
-                        contactPriorityAsMethods.add(ContactMethod.INTERNAL_ACCOUNTING);
-                        break;
-                    case "email":
-                        contactPriorityAsMethods.add(ContactMethod.EMAIL);
-                        break;
-                    case "carrier pigeon":
-                        contactPriorityAsMethods.add(ContactMethod.CARRIER_PIGEON);
-                        break;
-                    case "mail":
-                        contactPriorityAsMethods.add(ContactMethod.MAIL);
-                        break;
-                    case "phone call":
-                        contactPriorityAsMethods.add(ContactMethod.PHONECALL);
-                        break;
-                    case "sms":
-                        contactPriorityAsMethods.add(ContactMethod.SMS);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        if (contactPriorityAsMethods.size() == 0) { // needs setting to default
-            contactPriorityAsMethods = Arrays.asList(
-                    ContactMethod.INTERNAL_ACCOUNTING,
-                    ContactMethod.EMAIL,
-                    ContactMethod.CARRIER_PIGEON,
-                    ContactMethod.MAIL,
-                    ContactMethod.PHONECALL
-            );
-        }
-
-        Order order = TestDatabase.getInstance().getOrder(token, orderID);
-
-        order.finalise();
-        TestDatabase.getInstance().saveOrder(token, order);
-        return ContactHandler.sendInvoice(token, getClient(order.getClient()), contactPriorityAsMethods, order.generateInvoiceData());
+  public List<Report> getAllReports() {
+    if (null == token) {
+      throw new SecurityException();
     }
 
-    public void logout() {
-        AuthModule.logout(token);
-        token = null;
+    return new ArrayList<>(ReportDatabase.getTestReports());
+  }
+
+  public boolean finaliseOrder(int orderID, List<String> contactPriority) {
+    if (null == token) {
+      throw new SecurityException();
     }
 
-    public double getOrderTotalCommission(int orderID) {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    List<ContactMethod> contactPriorityAsMethods = new ArrayList<>();
 
-        Order order = TestDatabase.getInstance().getOrder(token, orderID);
-        if (null == order) {
-            return 0.0;
+    if (null != contactPriority) {
+      for (String method : contactPriority) {
+        switch (method.toLowerCase()) {
+          case "internal accounting":
+            contactPriorityAsMethods.add(ContactMethod.INTERNAL_ACCOUNTING);
+            break;
+          case "email":
+            contactPriorityAsMethods.add(ContactMethod.EMAIL);
+            break;
+          case "carrier pigeon":
+            contactPriorityAsMethods.add(ContactMethod.CARRIER_PIGEON);
+            break;
+          case "mail":
+            contactPriorityAsMethods.add(ContactMethod.MAIL);
+            break;
+          case "phone call":
+            contactPriorityAsMethods.add(ContactMethod.PHONECALL);
+            break;
+          case "sms":
+            contactPriorityAsMethods.add(ContactMethod.SMS);
+            break;
+          default:
+            break;
         }
-
-        return order.getTotalCommission();
+      }
     }
 
-    public void orderLineSet(int orderID, Report report, int numEmployees) {
-        if (null == token) {
-            throw new SecurityException();
-        }
-
-        Order order = TestDatabase.getInstance().getOrder(token, orderID);
-
-        if (null == order) {
-            System.out.println("got here");
-            return;
-        }
-
-        order.setReport(report, numEmployees);
-
-        TestDatabase.getInstance().saveOrder(token, order);
+    if (contactPriorityAsMethods.size() == 0) { // needs setting to default
+      contactPriorityAsMethods =
+          Arrays.asList(
+              ContactMethod.INTERNAL_ACCOUNTING,
+              ContactMethod.EMAIL,
+              ContactMethod.CARRIER_PIGEON,
+              ContactMethod.MAIL,
+              ContactMethod.PHONECALL);
     }
 
-    public String getOrderLongDesc(int orderID) {
-        if (null == token) {
-            throw new SecurityException();
-        }
+    Order order = TestDatabase.getInstance().getOrder(token, orderID);
 
-        Order order = TestDatabase.getInstance().getOrder(token, orderID);
+    order.finalise();
+    TestDatabase.getInstance().saveOrder(token, order);
+    return ContactHandler.sendInvoice(
+        token, getClient(order.getClient()), contactPriorityAsMethods, order.generateInvoiceData());
+  }
 
-        if (null == order) {
-            return null;
-        }
+  public void logout() {
+    AuthModule.logout(token);
+    token = null;
+  }
 
-        return order.longDesc();
+  public double getOrderTotalCommission(int orderID) {
+    if (null == token) {
+      throw new SecurityException();
     }
 
-    public String getOrderShortDesc(int orderID) {
-        if (null == token) {
-            throw new SecurityException();
-        }
-
-        Order order = TestDatabase.getInstance().getOrder(token, orderID);
-
-        if (null == order) {
-            return null;
-        }
-
-        return order.shortDesc();
+    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+    if (null == order) {
+      return 0.0;
     }
 
-    public List<String> getKnownContactMethods() {
-        if (null == token) {
-            throw new SecurityException();
-        }
-        return ContactHandler.getKnownMethods();
+    return order.getTotalCommission();
+  }
+
+  public void orderLineSet(int orderID, Report report, int numEmployees) {
+    if (null == token) {
+      throw new SecurityException();
     }
+
+    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+
+    if (null == order) {
+      System.out.println("got here");
+      return;
+    }
+
+    order.setReport(report, numEmployees);
+
+    TestDatabase.getInstance().saveOrder(token, order);
+  }
+
+  public String getOrderLongDesc(int orderID) {
+    if (null == token) {
+      throw new SecurityException();
+    }
+
+    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+
+    if (null == order) {
+      return null;
+    }
+
+    return order.longDesc();
+  }
+
+  public String getOrderShortDesc(int orderID) {
+    if (null == token) {
+      throw new SecurityException();
+    }
+
+    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+
+    if (null == order) {
+      return null;
+    }
+
+    return order.shortDesc();
+  }
+
+  public List<String> getKnownContactMethods() {
+    if (null == token) {
+      throw new SecurityException();
+    }
+    return ContactHandler.getKnownMethods();
+  }
 }
