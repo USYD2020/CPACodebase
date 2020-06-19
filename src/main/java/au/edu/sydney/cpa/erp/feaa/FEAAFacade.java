@@ -16,34 +16,57 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/** The type Feaa facade. */
 @SuppressWarnings("Duplicates")
-public class FEAAFacade {
+public class FEAAFacade implements Runnable {
   private AuthToken token;
+  private TestDatabase database;
+  private UnitOfWork unitOfWork;
 
+  /**
+   * Login boolean.
+   *
+   * @param userName the user name
+   * @param password the password
+   * @return the boolean
+   */
   public boolean login(String userName, String password) {
+    this.database = TestDatabase.getInstance();
     token = AuthModule.login(userName, password);
-
+    if(token != null) this.unitOfWork = new UnitOfWork(token);
     return null != token;
   }
 
+  /**
+   * Gets all orders.
+   *
+   * @return the all orders
+   */
   public List<Integer> getAllOrders() {
     if (null == token) {
       throw new SecurityException();
     }
-
-    TestDatabase database = TestDatabase.getInstance();
-
-    List<Order> orders = database.getOrders(token);
-
+    List<Order> orders = unitOfWork.getOrders(token);
     List<Integer> result = new ArrayList<>();
-
     for (Order order : orders) {
       result.add(order.getOrderID());
     }
-
     return result;
   }
 
+  /**
+   * Create order integer.
+   *
+   * @param clientID the client id
+   * @param date the date
+   * @param isCritical the is critical
+   * @param isScheduled the is scheduled
+   * @param orderType the order type
+   * @param criticalLoadingRaw the critical loading raw
+   * @param maxCountedEmployees the max counted employees
+   * @param numQuarters the num quarters
+   * @return the integer
+   */
   public Integer createOrder(
       int clientID,
       LocalDateTime date,
@@ -59,11 +82,11 @@ public class FEAAFacade {
 
     double criticalLoading = criticalLoadingRaw / 100.0;
 
-    if (!TestDatabase.getInstance().getClientIDs(token).contains(clientID)) {
+    if (!unitOfWork.getClientIDs(token).contains(clientID)) {
       throw new IllegalArgumentException("Invalid client ID");
     }
 
-    int id = TestDatabase.getInstance().getNextOrderID();
+    int id = unitOfWork.getNextOrderID();
     if (!isScheduled) numQuarters = 1;
 
     Priority priority;
@@ -71,62 +94,34 @@ public class FEAAFacade {
     else priority = new IsNotPriority();
 
     TypeOfOrder type = null;
-    if(orderType == 1) type = new TypeAccounting(maxCountedEmployees);
-    else if( orderType == 2) type  = new TypeAudit();
+    if (orderType == 1) type = new TypeAccounting(maxCountedEmployees);
+    else if (orderType == 2) type = new TypeAudit();
 
     if (type == null) return null;
-    Order order =
-          new OrderImpl(
-              id, clientID, date, priority, numQuarters, type);
+    Order order = new OrderImpl(id, clientID, date, priority, numQuarters, type);
 
-
-    //        if (isScheduled) {
-    //            if (1 == orderType) { // 1 is regular accounting
-    //                if (isCritical) {
-    //                    order = new FirstOrderTypeScheduled(id, clientID, date, criticalLoading,
-    // maxCountedEmployees, numQuarters);
-    //                } else {
-    //                    order = new Order66Scheduled(id, clientID, date, maxCountedEmployees,
-    // numQuarters);
-    //                }
-    //            } else if (2 == orderType) { // 2 is audit
-    //                    if (isCritical) {
-    //                        order = new CriticalAuditOrderScheduled(id, clientID, date,
-    // criticalLoading, numQuarters);
-    //                    } else {
-    //                        order = new NewOrderImplScheduled(id, clientID, date, numQuarters);
-    //                    }
-    //            } else {return null;}
-    //        } else {
-    //            if (1 == orderType) {
-    //                if (isCritical) {
-    //                    order = new FirstOrderType(id, clientID, date, criticalLoading,
-    // maxCountedEmployees);
-    //                } else {
-    //                    order = new Order66(id, clientID, date, maxCountedEmployees);
-    //                }
-    //            } else if (2 == orderType) {
-    //                if (isCritical) {
-    //                    order = new CriticalAuditOrder(id, clientID, date, criticalLoading);
-    //                } else {
-    //                    order = new NewOrderImpl(id, clientID, date);
-    //                }
-    //            } else {return null;}
-    //        }
-
-    TestDatabase.getInstance().saveOrder(token, order);
+    unitOfWork.saveOrder(token, order);
     return order.getOrderID();
   }
 
+  /**
+   * Gets all client i ds.
+   *
+   * @return the all client i ds
+   */
   public List<Integer> getAllClientIDs() {
     if (null == token) {
       throw new SecurityException();
     }
-
-    TestDatabase database = TestDatabase.getInstance();
-    return database.getClientIDs(token);
+    return unitOfWork.getClientIDs(token);
   }
 
+  /**
+   * Gets client.
+   *
+   * @param id the id
+   * @return the client
+   */
   public Client getClient(int id) {
     if (null == token) {
       throw new SecurityException();
@@ -135,23 +130,38 @@ public class FEAAFacade {
     return new ClientImpl(token, id);
   }
 
+  /**
+   * Remove order boolean.
+   *
+   * @param id the id
+   * @return the boolean
+   */
   public boolean removeOrder(int id) {
     if (null == token) {
       throw new SecurityException();
     }
-
-    TestDatabase database = TestDatabase.getInstance();
-    return database.removeOrder(token, id);
+    return unitOfWork.removeOrder(token, id);
   }
 
+  /**
+   * Gets all reports.
+   *
+   * @return the all reports
+   */
   public List<Report> getAllReports() {
     if (null == token) {
       throw new SecurityException();
     }
-
     return new ArrayList<>(ReportDatabase.getTestReports());
   }
 
+  /**
+   * Finalise order boolean.
+   *
+   * @param orderID the order id
+   * @param contactPriority the contact priority
+   * @return the boolean
+   */
   public boolean finaliseOrder(int orderID, List<String> contactPriority) {
     if (null == token) {
       throw new SecurityException();
@@ -196,25 +206,35 @@ public class FEAAFacade {
               ContactMethod.PHONECALL);
     }
 
-    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+    Order order = unitOfWork.getOrder(token, orderID);
 
     order.finalise();
-    TestDatabase.getInstance().saveOrder(token, order);
+    unitOfWork.saveOrder(token, order);
     return ContactHandler.sendInvoice(
         token, getClient(order.getClient()), contactPriorityAsMethods, order.generateInvoiceData());
   }
 
+  /** Logout.
+   * Important To commit before logout!!!
+   * */
   public void logout() {
+    unitOfWork.commit(token);
     AuthModule.logout(token);
     token = null;
   }
 
+  /**
+   * Gets order total commission.
+   *
+   * @param orderID the order id
+   * @return the order total commission
+   */
   public double getOrderTotalCommission(int orderID) {
     if (null == token) {
       throw new SecurityException();
     }
 
-    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+    Order order = unitOfWork.getOrder(token, orderID);
     if (null == order) {
       return 0.0;
     }
@@ -222,12 +242,19 @@ public class FEAAFacade {
     return order.getTotalCommission();
   }
 
+  /**
+   * Order line set.
+   *
+   * @param orderID the order id
+   * @param report the report
+   * @param numEmployees the num employees
+   */
   public void orderLineSet(int orderID, Report report, int numEmployees) {
     if (null == token) {
       throw new SecurityException();
     }
 
-    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+    Order order = unitOfWork.getOrder(token, orderID);
 
     if (null == order) {
       System.out.println("got here");
@@ -236,15 +263,21 @@ public class FEAAFacade {
 
     order.setReport(report, numEmployees);
 
-    TestDatabase.getInstance().saveOrder(token, order);
+   unitOfWork.saveOrder(token, order);
   }
 
+  /**
+   * Gets order long desc.
+   *
+   * @param orderID the order id
+   * @return the order long desc
+   */
   public String getOrderLongDesc(int orderID) {
     if (null == token) {
       throw new SecurityException();
     }
 
-    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+    Order order = unitOfWork.getOrder(token, orderID);
 
     if (null == order) {
       return null;
@@ -253,24 +286,39 @@ public class FEAAFacade {
     return order.longDesc();
   }
 
+  /**
+   * Gets order short desc.
+   *
+   * @param orderID the order id
+   * @return the order short desc
+   */
   public String getOrderShortDesc(int orderID) {
     if (null == token) {
       throw new SecurityException();
     }
 
-    Order order = TestDatabase.getInstance().getOrder(token, orderID);
+    Order order = unitOfWork.getOrder(token, orderID);
 
     if (null == order) {
       return null;
     }
-
     return order.shortDesc();
   }
 
+  /**
+   * Gets known contact methods.
+   *
+   * @return the known contact methods
+   */
   public List<String> getKnownContactMethods() {
     if (null == token) {
       throw new SecurityException();
     }
     return ContactHandler.getKnownMethods();
+  }
+
+  @Override
+  public void run() {
+    //pass
   }
 }

@@ -162,7 +162,8 @@ public class AllowedScopeTest {
 
         String patternString = "\\*NOT FINALISED\\*\\nOrder details \\(id #0\\)\\nDate: [0-9]{4}-[0-9]{2}-[0-9]{2}\\nReports:\\n\\tReport name: Fake Product\\tEmployee Count: 30\\tCommission per employee: \\$100.00\\tSubtotal: \\$3,000.00\\n\\tReport name: Fake Report 2\\tEmployee Count: 1\\tCommission per employee: \\$300.00\\tSubtotal: \\$300.00\\nCritical Loading: \\$330.00\\nTotal cost: \\$3,630.00\\n";
         Pattern pattern = Pattern.compile(patternString, Pattern.MULTILINE);
-
+        System.out.println(order.getOrderID());
+        System.out.println(order.longDesc());
         assertTrue(pattern.matcher(order.longDesc()).matches());
 
         assertEquals("ID:0 $3,630.00", order.shortDesc());

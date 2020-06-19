@@ -1,3 +1,0 @@
-double before = (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory());
-
-double after = Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();

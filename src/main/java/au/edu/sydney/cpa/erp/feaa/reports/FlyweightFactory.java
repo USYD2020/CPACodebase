@@ -11,7 +11,7 @@ public class FlyweightFactory {
   private List<Report> flyweights = new LinkedList<>();
 
   /**
-   * Gets report if found one with duplacate attributes in the flyweights list.
+   * Gets report if found one with duplicate attributes in the flyweights list.
    *
    * @param name the name
    * @param commissionPerEmployee the commission per employee
